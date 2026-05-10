@@ -7,6 +7,11 @@ import (
 	controllers "github.com/iamNanak/CineGenie/Server/StreamServer/controllers"
 )
 
+// func worker(id int, wg *sync.WaitGroup) {
+// 	defer wg.Done()
+// 	fmt.Println("id: ", id, "work done")
+// }
+
 func main() {
 	router := gin.Default()
 
@@ -26,4 +31,14 @@ func main() {
 		fmt.Println("Failed to start server:", err)
 	}
 
+	// numWorkers := 10
+
+	// var wg sync.WaitGroup
+
+	// for i := 0; i < numWorkers; i++ {
+	// 	wg.Add(1)
+	// 	go worker(i, &wg)
+	// }
+
+	// wg.Wait()
 }

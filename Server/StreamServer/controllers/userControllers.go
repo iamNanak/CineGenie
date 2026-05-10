@@ -81,7 +81,39 @@ func RegisterUser() gin.HandlerFunc {
 func LoginUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Implement login logic here
+		var loginReq models.LoginRequest
+		if err := c.ShouldBindJSON(&loginReq); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
+			return
+		}
 
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var foundUser models.User
+		err := userCollection.FindOne(ctx, bson.M{"email": loginReq.Email}).Decode(&foundUser)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(loginReq.Password))
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			return
+		}
+
+		var loginResp models.LoginResponse
+		loginResp.UserID = foundUser.UserID
+		loginResp.FirstName = foundUser.FirstName
+		loginResp.LastName = foundUser.LastName
+		loginResp.Email = foundUser.Email
+		loginResp.Role = foundUser.Role
+		loginResp.FavouriteGenre = foundUser.FavouriteGenres
+		loginResp.AccessToken = foundUser.AccessToken
+		loginResp.RefreshToken = foundUser.RefreshToken
+
+		c.JSON(http.StatusOK, gin.H{"message": "Login successful", "data": loginResp})
 	}
 
 }
